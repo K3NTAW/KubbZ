@@ -50,47 +50,46 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
   const location = useLocation();
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setShowDropdown(!showDropdown)}
-        className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-      >
-        <span>{user.username}</span>
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+    <div className="relative ml-3">
+      <div>
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+          id="user-menu-button"
+        >
+          <span className="sr-only">Open user menu</span>
+          <img
+            className="h-8 w-8 rounded-full"
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.username || 'Guest'}`}
+            alt="Profile"
+          />
+        </button>
+      </div>
 
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1">
-          <button
-            onClick={() => {
-              navigate('/profile');
-              setShowDropdown(false);
-            }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+        <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <Link
+            to="/profile"
+            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Profile
-          </button>
-          {user.is_admin && (
-            <button
-              onClick={() => {
-                navigate('/admin');
-                setShowDropdown(false);
-              }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            Your Profile
+          </Link>
+          {user?.isAdmin && (
+            <Link
+              to="/admin"
+              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Admin Panel
-            </button>
+              Admin Dashboard
+            </Link>
           )}
           <button
             onClick={() => {
               logout();
-              setShowDropdown(false);
+              navigate('/');
             }}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Sign Out
+            Sign out
           </button>
         </div>
       )}
@@ -100,56 +99,80 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
 
 function ProtectedRoute({ children, requireAdmin }: { children: React.ReactNode; requireAdmin?: boolean }) {
   const { user } = useAuthStore();
-  
-  if (!user) {
-    return <Navigate to="/login" />;
+
+  if (requireAdmin && !user.isAdmin) {
+    return <div>You do not have permission to access this page.</div>;
   }
 
-  if (requireAdmin && !user.is_admin) {
-    return <Navigate to="/" />;
-  }
-
-  return <>{children}</>;
+  return children;
 }
 
 function AppContent() {
-  const { user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
-                  Kubb
-                </Link>
+    <BrowserRouter>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: 'var(--toast-bg)',
+            color: 'var(--toast-color)',
+            boxShadow: 'var(--toast-shadow)',
+          },
+          className: '!bg-white dark:!bg-gray-800 !text-gray-900 dark:!text-white',
+        }}
+      />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <nav className="bg-white dark:bg-gray-800 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex justify-between h-16">
+              <div className="flex">
+                <div className="flex-shrink-0 flex items-center">
+                  <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    KUBBZuerich
+                  </Link>
+                </div>
+                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                  <Link
+                    to="/"
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      location.pathname === '/'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to="/tournament"
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      location.pathname === '/tournament'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Tournaments
+                  </Link>
+                  <Link
+                    to="/rankings"
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                      location.pathname === '/rankings'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Rankings
+                  </Link>
+                </div>
               </div>
 
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link
-                  to="/tournaments"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Tournaments
-                </Link>
-                <Link
-                  to="/rankings"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 dark:text-white"
-                >
-                  Rankings
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex items-center">
-              <ThemeToggle />
-              <div className="ml-4">
-                {user ? (
+              <div className="flex items-center">
+                <ThemeToggle />
+                {isAuthenticated ? (
                   <UserMenu user={user} logout={logout} />
                 ) : (
-                  <div className="flex space-x-4">
+                  <div className="flex items-center space-x-4 ml-4">
                     <Link
                       to="/login"
                       className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
@@ -158,7 +181,7 @@ function AppContent() {
                     </Link>
                     <Link
                       to="/register"
-                      className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                      className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium"
                     >
                       Sign Up
                     </Link>
@@ -167,15 +190,11 @@ function AppContent() {
               </div>
             </div>
           </div>
-        </div>
-      </nav>
-
-      <main className="py-10">
-        <BrowserRouter>
+        </nav>
+        <main className="max-w-7xl mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/tournaments" element={<Tournaments />} />
-            <Route path="/rankings" element={<Rankings />} />
+            <Route path="/tournament" element={<Tournaments />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
             <Route
@@ -194,8 +213,9 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/rankings" element={<Rankings />} />
             <Route
-              path="/tournament-registration/:id"
+              path="/tournament/:id/register"
               element={
                 <ProtectedRoute>
                   <TournamentRegistration />
@@ -203,11 +223,9 @@ function AppContent() {
               }
             />
           </Routes>
-        </BrowserRouter>
-      </main>
-
-      <Toaster position="bottom-right" />
-    </div>
+        </main>
+      </div>
+    </BrowserRouter>
   );
 }
 

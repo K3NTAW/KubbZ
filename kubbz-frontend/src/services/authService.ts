@@ -4,11 +4,6 @@ export interface User {
     id: string;
     username: string;
     email: string;
-    points: number;
-    role: 'admin' | 'user';
-    bio?: string;
-    phone?: string;
-    avatar?: string;
 }
 
 export interface LoginCredentials {

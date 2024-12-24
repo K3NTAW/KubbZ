@@ -44,15 +44,29 @@ router.post('/', auth, async (req, res) => {
             registration_deadline, fee 
         } = req.body;
 
+        // Format dates for MySQL
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toISOString().slice(0, 19).replace('T', ' ');
+        };
+
         const [result] = await pool.execute(
             `INSERT INTO tournaments (
                 name, description, location, maps_link,
                 start_date, end_date, max_participants, 
                 registration_deadline, fee
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [name, description, location, maps_link,
-             start_date, end_date, max_participants,
-             registration_deadline, fee]
+            [
+                name, 
+                description, 
+                location, 
+                maps_link,
+                formatDate(start_date), 
+                formatDate(end_date), 
+                max_participants,
+                formatDate(registration_deadline), 
+                fee
+            ]
         );
 
         const [newTournament] = await pool.execute(
@@ -63,7 +77,10 @@ router.post('/', auth, async (req, res) => {
         res.status(201).json(newTournament[0]);
     } catch (error) {
         console.error('Error creating tournament:', error);
-        res.status(500).json({ message: 'Error creating tournament' });
+        res.status(500).json({ 
+            message: 'Error creating tournament',
+            error: error.message
+        });
     }
 });
 
@@ -174,6 +191,41 @@ router.post('/:id/register', auth, async (req, res) => {
     } catch (error) {
         console.error('Error registering for tournament:', error);
         res.status(500).json({ message: 'Error registering for tournament' });
+    }
+});
+
+// Drop out from tournament
+router.delete('/:id/register', auth, async (req, res) => {
+    try {
+        const tournament_id = req.params.id;
+        const user_id = req.user.id;
+
+        // Check if user is registered
+        const [existingRegistrations] = await pool.execute(
+            'SELECT * FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?',
+            [tournament_id, user_id]
+        );
+
+        if (existingRegistrations.length === 0) {
+            return res.status(404).json({ message: 'Not registered for this tournament' });
+        }
+
+        // Remove registration
+        await pool.execute(
+            'DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?',
+            [tournament_id, user_id]
+        );
+
+        // Update participant count
+        await pool.execute(
+            'UPDATE tournaments SET current_participants = current_participants - 1 WHERE id = ?',
+            [tournament_id]
+        );
+
+        res.status(200).json({ message: 'Successfully dropped out from tournament' });
+    } catch (error) {
+        console.error('Error dropping out from tournament:', error);
+        res.status(500).json({ message: 'Error dropping out from tournament' });
     }
 });
 

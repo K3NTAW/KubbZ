@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tournament } from '../types/tournament';
-import { tournamentService } from '../services/tournamentService';
+import { useTournamentStore } from '../store/tournamentStore';
 import { toast } from 'react-hot-toast';
 
 interface CreateTournamentModalProps {
@@ -10,6 +10,7 @@ interface CreateTournamentModalProps {
 }
 
 export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTournamentModalProps) {
+  const addTournament = useTournamentStore(state => state.addTournament);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -32,9 +33,42 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name || !formData.start_date || !formData.end_date || !formData.registration_deadline) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Validate dates
+    const startDate = new Date(formData.start_date);
+    const endDate = new Date(formData.end_date);
+    const registrationDeadline = new Date(formData.registration_deadline);
+    const now = new Date();
+
+    if (registrationDeadline < now) {
+      toast.error('Registration deadline cannot be in the past');
+      return;
+    }
+
+    if (startDate > endDate) {
+      toast.error('End date must be after start date');
+      return;
+    }
+
+    if (registrationDeadline > startDate) {
+      toast.error('Registration deadline must be before start date');
+      return;
+    }
+
     try {
-      await tournamentService.createTournament(formData);
-      toast.success('Tournament created successfully');
+      await addTournament({
+        ...formData,
+        max_participants: Number(formData.max_participants),
+        fee: Number(formData.fee),
+        location: formData.location || 'TBD',
+        maps_link: formData.maps_link || ''
+      });
       onCreate();
       onClose();
       // Reset form
@@ -49,9 +83,10 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
         registration_deadline: '',
         fee: 0
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating tournament:', error);
-      toast.error('Failed to create tournament');
+      const errorMessage = error.response?.data?.message || 'Failed to create tournament';
+      toast.error(errorMessage);
     }
   };
 
@@ -143,7 +178,7 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="start_date" className={labelClassName}>
-                Start Date
+                Start Date *
               </label>
               <input
                 type="datetime-local"
@@ -158,7 +193,7 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
 
             <div>
               <label htmlFor="end_date" className={labelClassName}>
-                End Date
+                End Date *
               </label>
               <input
                 type="datetime-local"
@@ -170,6 +205,21 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="registration_deadline" className={labelClassName}>
+              Registration Deadline *
+            </label>
+            <input
+              type="datetime-local"
+              id="registration_deadline"
+              name="registration_deadline"
+              value={formData.registration_deadline}
+              onChange={handleChange}
+              className={inputClassName}
+              required
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,21 +255,6 @@ export function CreateTournamentModal({ isOpen, onClose, onCreate }: CreateTourn
                 required
               />
             </div>
-          </div>
-
-          <div>
-            <label htmlFor="registration_deadline" className={labelClassName}>
-              Registration Deadline
-            </label>
-            <input
-              type="datetime-local"
-              id="registration_deadline"
-              name="registration_deadline"
-              value={formData.registration_deadline}
-              onChange={handleChange}
-              className={inputClassName}
-              required
-            />
           </div>
 
           <div className="flex justify-end space-x-4 pt-4">

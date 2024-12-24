@@ -61,7 +61,7 @@ export function TournamentRegistration() {
       await tournamentService.registerForTournament(id, formData.team_name.trim());
       await fetchTournaments(); // Refresh tournaments to update participant count
       toast.success('Successfully registered for tournament!');
-      navigate(`/tournaments/${id}`);
+      navigate('/tournaments');
     } catch (error: any) {
       console.error('Error registering for tournament:', error);
       toast.error(error.response?.data?.message || 'Failed to register for tournament');

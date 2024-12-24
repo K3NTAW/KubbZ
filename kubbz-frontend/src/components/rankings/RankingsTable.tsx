@@ -1,5 +1,6 @@
 import React from 'react';
 import { RankingEntry } from '../../types/user';
+import { Avatar } from '../common/Avatar';
 
 interface RankingsTableProps {
   rankings: RankingEntry[];
@@ -68,19 +69,11 @@ export function RankingsTable({ rankings, currentPage, totalPages, onPageChange 
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    {entry.avatar ? (
-                      <img
-                        src={entry.avatar}
-                        alt={entry.userName}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                        <span className="text-sm font-medium text-white">
-                          {getInitials(entry.userName)}
-                        </span>
-                      </div>
-                    )}
+                    <Avatar 
+                      src={entry.avatar} 
+                      name={entry.userName} 
+                      size="md"
+                    />
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {entry.userName}

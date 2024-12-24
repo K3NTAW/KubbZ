@@ -20,8 +20,10 @@ const axiosInstance = axios.create({
 // Add auth token to every request
 axiosInstance.interceptors.request.use(
   (config) => {
-    const headers = getAuthHeaders();
-    config.headers = { ...config.headers, ...headers };
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -72,14 +74,40 @@ export const tournamentService = {
 
   async createTournament(tournament: Omit<Tournament, 'id' | 'current_participants' | 'created_at' | 'updated_at'>): Promise<Tournament> {
     try {
-      const response = await axiosInstance.post('/tournaments', {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      // Format the dates to ISO string format
+      const formattedTournament = {
         ...tournament,
         fee: Number(tournament.fee),
-        max_participants: Number(tournament.max_participants)
-      });
+        max_participants: Number(tournament.max_participants),
+        start_date: new Date(tournament.start_date).toISOString(),
+        end_date: new Date(tournament.end_date).toISOString(),
+        registration_deadline: new Date(tournament.registration_deadline).toISOString()
+      };
+
+      console.log('Creating tournament with data:', formattedTournament);
+
+      const response = await axiosInstance.post('/tournaments', formattedTournament);
       return transformTournament(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating tournament:', error);
+      if (error.response) {
+        console.error('Error response:', {
+          data: error.response.data,
+          status: error.response.status,
+          headers: error.response.headers
+        });
+        
+        // Handle specific error cases
+        if (error.response.status === 401) {
+          throw new Error('You must be logged in as an admin to create tournaments');
+        }
+      }
       throw error;
     }
   },
@@ -137,9 +165,13 @@ export const tournamentService = {
     }
   },
 
-  async dropOutFromTournament(tournamentId: string) {
-    const response = await axiosInstance.post(`/tournaments/${tournamentId}/drop-out`);
-    return response.data;
+  async dropOutFromTournament(tournamentId: string): Promise<void> {
+    try {
+      await axiosInstance.delete(`/tournaments/${tournamentId}/register`);
+    } catch (error) {
+      console.error('Error dropping out from tournament:', error);
+      throw error;
+    }
   },
 
   async getUserTournaments(): Promise<Tournament[]> {

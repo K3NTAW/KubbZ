@@ -38,8 +38,8 @@ router.post('/register', async (req, res) => {
 
         // Create new user
         const [result] = await pool.execute(
-            'INSERT INTO users (username, email, password_hash, points, is_admin) VALUES (?, ?, ?, ?, ?)',
-            [username, email, password_hash, 0, 0]
+            'INSERT INTO users (username, email, password_hash, points, role) VALUES (?, ?, ?, ?, ?)',
+            [username, email, password_hash, 0, 'user']
         );
 
         // Generate token
@@ -57,7 +57,7 @@ router.post('/register', async (req, res) => {
                 username,
                 email,
                 points: 0,
-                isAdmin: false
+                role: 'user'
             }
         });
     } catch (error) {
@@ -73,7 +73,7 @@ router.post('/login', async (req, res) => {
 
         // Check if user exists
         const [users] = await pool.execute(
-            'SELECT id, username, email, password_hash, points, is_admin FROM users WHERE email = ?',
+            'SELECT id, username, email, password_hash, points, role FROM users WHERE email = ?',
             [email]
         );
 
@@ -103,7 +103,7 @@ router.post('/login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 points: user.points,
-                isAdmin: user.is_admin === 1
+                role: user.role
             }
         });
     } catch (error) {
@@ -116,7 +116,7 @@ router.post('/login', async (req, res) => {
 router.get('/profile', auth, async (req, res) => {
     try {
         const [users] = await pool.execute(
-            'SELECT id, username, email, points, is_admin FROM users WHERE id = ?',
+            'SELECT id, username, email, points, role FROM users WHERE id = ?',
             [req.user.id]
         );
 
@@ -129,7 +129,7 @@ router.get('/profile', auth, async (req, res) => {
             username: users[0].username,
             email: users[0].email,
             points: users[0].points,
-            isAdmin: !!users[0].is_admin
+            role: users[0].role
         });
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -232,7 +232,7 @@ router.patch('/profile', auth, async (req, res) => {
 
         // Get updated user data
         const [updatedUser] = await pool.execute(
-            'SELECT id, username, email, points, bio, phone, avatar, is_admin FROM users WHERE id = ?',
+            'SELECT id, username, email, points, bio, phone, avatar, role FROM users WHERE id = ?',
             [req.user.id]
         );
 
@@ -244,7 +244,7 @@ router.patch('/profile', auth, async (req, res) => {
             bio: updatedUser[0].bio,
             phone: updatedUser[0].phone,
             avatar: updatedUser[0].avatar,
-            isAdmin: !!updatedUser[0].is_admin
+            role: updatedUser[0].role
         });
     } catch (error) {
         console.error('Error updating profile:', error);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trophy, LogOut, Settings, User, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { toast } from 'react-hot-toast';
+import { Avatar } from '../common/Avatar';
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -38,6 +39,15 @@ export function Navbar() {
     navigate('/login');
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,29 +80,11 @@ export function Navbar() {
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="flex items-center space-x-3 focus:outline-none"
                   >
-                    {user?.avatar && user.avatar.length > 0 && !user.avatar.includes('undefined') ? (
-                      <div className="h-8 w-8 rounded-full overflow-hidden">
-                        <img
-                          src={user.avatar}
-                          alt={user.username}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.error('Failed to load avatar:', e);
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              parent.innerHTML = `<span class="text-white text-sm font-medium">${user.username.charAt(0).toUpperCase()}</span>`;
-                              parent.classList.add('bg-blue-600', 'flex', 'items-center', 'justify-center');
-                            }
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {user?.username?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <Avatar 
+                      src={user?.avatar} 
+                      name={user?.username || ''} 
+                      size="md"
+                    />
                     <span className="text-sm text-gray-700">{user?.username}</span>
                   </button>
 
