@@ -1,0 +1,3 @@
+ALTER TABLE tournaments
+ADD COLUMN IF NOT EXISTS location VARCHAR(255) AFTER description,
+ADD COLUMN IF NOT EXISTS maps_link VARCHAR(2048) AFTER location;
