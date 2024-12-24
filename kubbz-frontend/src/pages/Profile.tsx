@@ -17,7 +17,8 @@ export function Profile() {
     email: user?.email || '',
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    avatar: user?.avatar || ''
   });
 
   useEffect(() => {
@@ -44,6 +45,9 @@ export function Profile() {
         }
         if (formData.email !== user?.email) {
           updates.email = formData.email;
+        }
+        if (formData.avatar !== user?.avatar) {
+          updates.avatar = formData.avatar;
         }
       } else if (editMode === 'password') {
         if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
@@ -107,22 +111,67 @@ export function Profile() {
     }
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        setFormData(prev => ({ ...prev, avatar: base64String }));
+        await updateProfile({ avatar: base64String });
+        toast.success('Profile picture updated successfully');
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast.error('Failed to update profile picture');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
         {/* Profile Header */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
-          <div className="flex items-center space-x-5">
-            <div className="flex-shrink-0">
-              <Avatar 
-                src={user?.avatar} 
-                name={user?.username || ''} 
-                size="lg"
-              />
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative group">
+              <label className="cursor-pointer block relative">
+                <Avatar 
+                  src={user?.avatar} 
+                  name={user?.username || ''} 
+                  size="lg"
+                  className="w-32 h-32 border-4 border-white shadow-lg"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all duration-200 flex items-center justify-center">
+                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    Change Photo
+                  </span>
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                />
+              </label>
             </div>
-            <div className="flex-1 text-center sm:text-left">
+            <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{user?.username}</h1>
-              <p className="text-gray-500 dark:text-gray-400">{user?.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
               {user?.isAdmin && (
                 <span className="inline-flex items-center px-3 py-1 mt-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   Admin
@@ -208,7 +257,7 @@ export function Profile() {
                     <div className="space-y-4">
                       <div className="flex items-center text-base text-gray-600 dark:text-gray-300">
                         <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857L11 17H9v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                         <div>
                           <span className="font-medium">Participants:</span><br />
