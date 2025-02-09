@@ -38,6 +38,10 @@ router.get('/:id', async (req, res) => {
 // Create tournament (admin only)
 router.post('/', auth, async (req, res) => {
     try {
+        if (!req.user.is_admin) {
+            return res.status(403).json({ message: 'Admin privileges required' });
+        }
+
         const { 
             name, description, location, maps_link,
             start_date, end_date, max_participants, 
@@ -53,34 +57,31 @@ router.post('/', auth, async (req, res) => {
         const [result] = await pool.execute(
             `INSERT INTO tournaments (
                 name, description, location, maps_link,
-                start_date, end_date, max_participants, 
+                start_date, end_date, max_participants,
                 registration_deadline, fee
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                name, 
-                description, 
-                location, 
-                maps_link,
-                formatDate(start_date), 
-                formatDate(end_date), 
-                max_participants,
-                formatDate(registration_deadline), 
-                fee
+                name, description, location, maps_link,
+                formatDate(start_date), formatDate(end_date), max_participants,
+                formatDate(registration_deadline), fee
             ]
         );
 
-        const [newTournament] = await pool.execute(
-            'SELECT * FROM tournaments WHERE id = ?',
-            [result.insertId]
-        );
-
-        res.status(201).json(newTournament[0]);
+        res.status(201).json({
+            id: result.insertId,
+            name,
+            description,
+            location,
+            maps_link,
+            start_date,
+            end_date,
+            max_participants,
+            registration_deadline,
+            fee
+        });
     } catch (error) {
         console.error('Error creating tournament:', error);
-        res.status(500).json({ 
-            message: 'Error creating tournament',
-            error: error.message
-        });
+        res.status(500).json({ message: 'Error creating tournament' });
     }
 });
 
@@ -151,34 +152,41 @@ router.delete('/:id', auth, async (req, res) => {
 // Register for tournament
 router.post('/:id/register', auth, async (req, res) => {
     try {
-        const { team_name } = req.body;
         const tournament_id = req.params.id;
         const user_id = req.user.id;
+        const { team_name } = req.body;
 
-        // Check if tournament exists and is open for registration
+        // Check if tournament exists and registration is still open
         const [tournaments] = await pool.execute(
-            'SELECT * FROM tournaments WHERE id = ? AND registration_deadline > NOW() AND current_participants < max_participants',
+            `SELECT * FROM tournaments 
+             WHERE id = ? 
+             AND registration_deadline > NOW()
+             AND current_participants < max_participants`,
             [tournament_id]
         );
 
         if (tournaments.length === 0) {
-            return res.status(400).json({ message: 'Tournament not found or registration closed' });
+            return res.status(404).json({ 
+                message: 'Tournament not found or registration closed' 
+            });
         }
 
         // Check if user is already registered
-        const [existingRegistrations] = await pool.execute(
-            'SELECT * FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?',
+        const [existing] = await pool.execute(
+            'SELECT * FROM tournament_registrations WHERE tournament_id = ? AND user_id = UUID_TO_BIN(?)',
             [tournament_id, user_id]
         );
 
-        if (existingRegistrations.length > 0) {
-            return res.status(400).json({ message: 'Already registered for this tournament' });
+        if (existing.length > 0) {
+            return res.status(400).json({ 
+                message: 'Already registered for this tournament' 
+            });
         }
 
         // Register user
         await pool.execute(
-            'INSERT INTO tournament_registrations (tournament_id, user_id, team_name, status) VALUES (?, ?, ?, "approved")',
-            [tournament_id, user_id, team_name]
+            'INSERT INTO tournament_registrations (tournament_id, user_id, team_name, status) VALUES (?, UUID_TO_BIN(?), ?, ?)',
+            [tournament_id, user_id, team_name || null, 'pending']
         );
 
         // Update participant count
@@ -202,7 +210,7 @@ router.delete('/:id/register', auth, async (req, res) => {
 
         // Check if user is registered
         const [existingRegistrations] = await pool.execute(
-            'SELECT * FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?',
+            'SELECT * FROM tournament_registrations WHERE tournament_id = ? AND user_id = UUID_TO_BIN(?)',
             [tournament_id, user_id]
         );
 
@@ -212,7 +220,7 @@ router.delete('/:id/register', auth, async (req, res) => {
 
         // Remove registration
         await pool.execute(
-            'DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_id = ?',
+            'DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_id = UUID_TO_BIN(?)',
             [tournament_id, user_id]
         );
 
@@ -248,7 +256,7 @@ router.get('/:id/participants', auth, async (req, res) => {
         const [participants] = await pool.execute(
             `SELECT tr.id, tr.team_name, tr.registration_date, u.username 
              FROM tournament_registrations tr
-             LEFT JOIN users u ON tr.user_id = u.id
+             LEFT JOIN users u ON tr.user_id = UUID_TO_BIN(u.id)
              WHERE tr.tournament_id = ? AND tr.status = 'approved'`,
             [req.params.id]
         );
@@ -321,14 +329,39 @@ router.get('/user/registered', auth, async (req, res) => {
             `SELECT t.*, tr.team_name, tr.registration_date, tr.status
              FROM tournaments t
              INNER JOIN tournament_registrations tr ON t.id = tr.tournament_id
-             WHERE tr.user_id = ?
+             WHERE tr.user_id = UUID_TO_BIN(?)
              ORDER BY t.start_date DESC`,
             [req.user.id]
         );
+
         res.json(registeredTournaments);
     } catch (error) {
-        console.error('Error fetching user tournaments:', error);
-        res.status(500).json({ message: 'Error fetching user tournaments' });
+        console.error('Error fetching registered tournaments:', error);
+        res.status(500).json({ message: 'Error fetching registered tournaments' });
+    }
+});
+
+// Cancel tournament registration
+router.delete('/:id/register', auth, async (req, res) => {
+    try {
+        const tournament_id = req.params.id;
+        const user_id = req.user.id;
+
+        const [result] = await pool.execute(
+            'DELETE FROM tournament_registrations WHERE tournament_id = ? AND user_id = UUID_TO_BIN(?)',
+            [tournament_id, user_id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ 
+                message: 'Registration not found' 
+            });
+        }
+
+        res.json({ message: 'Registration cancelled successfully' });
+    } catch (error) {
+        console.error('Error cancelling registration:', error);
+        res.status(500).json({ message: 'Error cancelling registration' });
     }
 });
 

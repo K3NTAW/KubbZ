@@ -4,6 +4,9 @@ export interface User {
     id: string;
     username: string;
     email: string;
+    is_admin: boolean;
+    points: number;
+    avatar: string | undefined;
 }
 
 export interface LoginCredentials {
@@ -26,25 +29,55 @@ export const authService = {
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         const response = await api.post('/auth/login', credentials);
         const { token, user } = response.data;
+        console.log('Raw user data from backend:', user);
+        // Ensure is_admin is boolean
+        const mappedUser: User = {
+            ...user,
+            is_admin: user.is_admin === 1 || user.is_admin === true,
+            points: user.points || 0,
+            avatar: user.avatar || undefined
+        };
+        console.log('Mapped user data:', mappedUser);
         localStorage.setItem('token', token);
-        return { token, user };
+        return { token, user: mappedUser };
     },
 
     async register(data: RegisterData): Promise<AuthResponse> {
         const response = await api.post('/auth/register', data);
         const { token, user } = response.data;
+        // Ensure is_admin is boolean
+        const mappedUser: User = {
+            ...user,
+            is_admin: user.is_admin === 1 || user.is_admin === true,
+            points: user.points || 0,
+            avatar: user.avatar || undefined
+        };
         localStorage.setItem('token', token);
-        return { token, user };
+        return { token, user: mappedUser };
     },
 
     async getProfile(): Promise<User> {
         const response = await api.get('/auth/profile');
-        return response.data;
+        // Ensure is_admin is boolean
+        const mappedUser: User = {
+            ...response.data,
+            is_admin: response.data.is_admin === 1 || response.data.is_admin === true,
+            points: response.data.points || 0,
+            avatar: response.data.avatar || undefined
+        };
+        return mappedUser;
     },
 
     async updateProfile(data: Partial<User>): Promise<User> {
         const response = await api.patch('/auth/profile', data);
-        return response.data;
+        // Ensure is_admin is boolean
+        const mappedUser: User = {
+            ...response.data,
+            is_admin: response.data.is_admin === 1 || response.data.is_admin === true,
+            points: response.data.points || 0,
+            avatar: response.data.avatar || undefined
+        };
+        return mappedUser;
     },
 
     async deleteAccount(): Promise<void> {

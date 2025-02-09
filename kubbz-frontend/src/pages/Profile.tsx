@@ -115,30 +115,26 @@ export function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
-    }
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
-      return;
-    }
-
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        setFormData(prev => ({ ...prev, avatar: base64String }));
-        await updateProfile({ avatar: base64String });
-        toast.success('Profile picture updated successfully');
+        try {
+          const base64String = reader.result as string;
+          // Update the form data first
+          setFormData(prev => ({ ...prev, avatar: base64String }));
+          
+          // Then update the profile
+          await updateProfile({ avatar: base64String });
+          toast.success('Profile picture updated successfully');
+        } catch (error) {
+          console.error('Error in avatar update:', error);
+          toast.error('Failed to update profile picture');
+        }
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Error updating avatar:', error);
-      toast.error('Failed to update profile picture');
+      console.error('Error reading file:', error);
+      toast.error('Failed to read image file');
     }
   };
 
@@ -172,7 +168,7 @@ export function Profile() {
             <div className="text-center">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{user?.username}</h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
-              {user?.isAdmin && (
+              {user?.is_admin && (
                 <span className="inline-flex items-center px-3 py-1 mt-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   Admin
                 </span>
@@ -521,7 +517,7 @@ export function Profile() {
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Account Actions</h3>
               <div className="space-y-4">
-                {user?.isAdmin && (
+                {user?.is_admin && (
                   <Link
                     to="/admin"
                     className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"

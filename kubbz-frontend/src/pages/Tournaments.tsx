@@ -37,7 +37,7 @@ export function Tournaments() {
       navigate('/login');
       return;
     }
-    navigate(`/tournament/${tournamentId}/register`);
+    navigate(`/tournaments/${tournamentId}/register`);
   };
 
   const toggleTournament = (tournamentId: number) => {

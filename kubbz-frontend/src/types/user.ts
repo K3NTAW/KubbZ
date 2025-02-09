@@ -4,7 +4,7 @@ export interface User {
   email: string;
   points: number;
   seasonPoints?: number;
-  isAdmin: boolean;
+  is_admin: boolean;
   bio?: string;
   phone?: string;
   avatar?: string;

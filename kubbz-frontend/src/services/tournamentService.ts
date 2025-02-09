@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from './api';
 import { Tournament, TournamentParticipant } from '../types/tournament';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -51,7 +52,7 @@ const transformTournament = (data: any): Tournament => ({
 export const tournamentService = {
   async getAllTournaments(): Promise<Tournament[]> {
     try {
-      const response = await axiosInstance.get('/tournaments');
+      const response = await api.get('/tournaments');
       return response.data.map(transformTournament);
     } catch (error) {
       console.error('Error fetching tournaments:', error);
@@ -61,7 +62,7 @@ export const tournamentService = {
 
   async getTournamentById(id: string): Promise<Tournament | null> {
     try {
-      const response = await axiosInstance.get(`/tournaments/${id}`);
+      const response = await api.get(`/tournaments/${id}`);
       return transformTournament(response.data);
     } catch (error) {
       if (error.response?.status === 404) {
@@ -92,7 +93,7 @@ export const tournamentService = {
 
       console.log('Creating tournament with data:', formattedTournament);
 
-      const response = await axiosInstance.post('/tournaments', formattedTournament);
+      const response = await api.post('/tournaments', formattedTournament);
       return transformTournament(response.data);
     } catch (error: any) {
       console.error('Error creating tournament:', error);
@@ -114,7 +115,7 @@ export const tournamentService = {
 
   async updateTournament(id: string, tournament: Partial<Tournament>): Promise<Tournament> {
     try {
-      const response = await axiosInstance.patch(`/tournaments/${id}`, {
+      const response = await api.patch(`/tournaments/${id}`, {
         ...tournament,
         fee: tournament.fee !== undefined ? Number(tournament.fee) : undefined,
         max_participants: tournament.max_participants !== undefined ? Number(tournament.max_participants) : undefined,
@@ -130,7 +131,7 @@ export const tournamentService = {
 
   async deleteTournament(id: string): Promise<void> {
     try {
-      await axiosInstance.delete(`/tournaments/${id}`);
+      await api.delete(`/tournaments/${id}`);
     } catch (error) {
       console.error('Error deleting tournament:', error);
       throw error;
@@ -139,7 +140,7 @@ export const tournamentService = {
 
   async getTournamentParticipants(tournamentId: string): Promise<TournamentParticipant[]> {
     try {
-      const response = await axiosInstance.get(`/tournaments/${tournamentId}/participants`);
+      const response = await api.get(`/tournaments/${tournamentId}/participants`);
       return response.data;
     } catch (error) {
       console.error('Error fetching tournament participants:', error);
@@ -149,7 +150,7 @@ export const tournamentService = {
 
   async removeParticipant(tournamentId: string, participantId: string): Promise<void> {
     try {
-      await axiosInstance.delete(`/tournaments/${tournamentId}/participants/${participantId}`);
+      await api.delete(`/tournaments/${tournamentId}/participants/${participantId}`);
     } catch (error) {
       console.error('Error removing participant:', error);
       throw error;
@@ -158,7 +159,7 @@ export const tournamentService = {
 
   async registerForTournament(tournamentId: string, teamName?: string): Promise<void> {
     try {
-      await axiosInstance.post(`/tournaments/${tournamentId}/register`, { team_name: teamName || null });
+      await api.post(`/tournaments/${tournamentId}/register`, { team_name: teamName || null });
     } catch (error) {
       console.error('Error registering for tournament:', error);
       throw error;
@@ -167,7 +168,7 @@ export const tournamentService = {
 
   async dropOutFromTournament(tournamentId: string): Promise<void> {
     try {
-      await axiosInstance.delete(`/tournaments/${tournamentId}/register`);
+      await api.delete(`/tournaments/${tournamentId}/register`);
     } catch (error) {
       console.error('Error dropping out from tournament:', error);
       throw error;
@@ -176,7 +177,7 @@ export const tournamentService = {
 
   async getUserTournaments(): Promise<Tournament[]> {
     try {
-      const response = await axiosInstance.get('/tournaments/user/registered');
+      const response = await api.get('/tournaments/user/registered');
       return response.data.map(transformTournament);
     } catch (error) {
       console.error('Error fetching user tournaments:', error);

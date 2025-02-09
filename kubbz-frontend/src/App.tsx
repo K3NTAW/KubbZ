@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { TournamentRegistration } from './pages/TournamentRegistration';
 import { Profile } from './pages/Profile';
 import { Home } from './pages/Home';
+import { Avatar } from './components/common/Avatar';
 
 function ThemeToggle() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -58,10 +59,11 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
           id="user-menu-button"
         >
           <span className="sr-only">Open user menu</span>
-          <img
-            className="h-8 w-8 rounded-full"
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.username || 'Guest'}`}
-            alt="Profile"
+          <Avatar 
+            src={user?.avatar}
+            name={user?.username || 'Guest'}
+            size="sm"
+            className="border-2 border-gray-200 dark:border-gray-700"
           />
         </button>
       </div>
@@ -74,7 +76,7 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
           >
             Your Profile
           </Link>
-          {user?.isAdmin && (
+          {user?.is_admin && (
             <Link
               to="/admin"
               className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -98,10 +100,22 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
 }
 
 function ProtectedRoute({ children, requireAdmin }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { user } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
-  if (requireAdmin && !user.isAdmin) {
-    return <div>You do not have permission to access this page.</div>;
+  console.log('ProtectedRoute check:', {
+    isAuthenticated,
+    username: user?.username,
+    is_admin: user?.is_admin,
+    is_admin_type: typeof user?.is_admin,
+    requireAdmin
+  });
+
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (requireAdmin && !user.is_admin) {
+    return <div>You do not have permission to access this page. Debug info: is_admin={String(user.is_admin)}, type={typeof user.is_admin}</div>;
   }
 
   return children;
@@ -145,9 +159,9 @@ function AppContent() {
                     Home
                   </Link>
                   <Link
-                    to="/tournament"
+                    to="/tournaments"
                     className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                      location.pathname === '/tournament'
+                      location.pathname === '/tournaments'
                         ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
@@ -194,7 +208,7 @@ function AppContent() {
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/tournament" element={<Tournaments />} />
+            <Route path="/tournaments" element={<Tournaments />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/register" element={<RegisterForm />} />
             <Route
@@ -215,7 +229,7 @@ function AppContent() {
             />
             <Route path="/rankings" element={<Rankings />} />
             <Route
-              path="/tournament/:id/register"
+              path="/tournaments/:id/register"
               element={
                 <ProtectedRoute>
                   <TournamentRegistration />

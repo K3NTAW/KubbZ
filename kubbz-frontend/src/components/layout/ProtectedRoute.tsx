@@ -13,7 +13,7 @@ export function ProtectedRoute({ children, requireAdmin }: ProtectedRouteProps) 
     return <Navigate to="/login" />;
   }
 
-  if (requireAdmin && !user?.isAdmin) {
+  if (requireAdmin && !user?.is_admin) {
     return <Navigate to="/" />;
   }
 
