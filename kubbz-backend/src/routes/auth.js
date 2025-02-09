@@ -131,6 +131,29 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Get all users (admin only)
+router.get('/users', auth, async (req, res) => {
+    try {
+        // Check if user is admin
+        if (!req.user.is_admin) {
+            return res.status(403).json({ message: 'Access denied. Admin only.' });
+        }
+
+        // Get all users
+        const [users] = await pool.execute(
+            'SELECT BIN_TO_UUID(id) as id, username, email, points, is_admin, avatar FROM users ORDER BY username'
+        );
+
+        res.json(users.map(user => ({
+            ...user,
+            is_admin: user.is_admin === 1 || user.is_admin === true
+        })));
+    } catch (error) {
+        console.error('Error getting users:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // Update profile
 router.patch('/profile', auth, async (req, res) => {
     try {

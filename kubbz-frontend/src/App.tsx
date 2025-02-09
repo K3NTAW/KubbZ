@@ -17,6 +17,7 @@ import './i18n/i18n';
 import LanguageToggle from './components/LanguageToggle';
 import { useTranslation } from 'react-i18next';
 import kubbLogo from './assets/images/logos/kubblogo.png';
+import { WinnersAdmin } from './pages/WinnersAdmin';
 
 function ThemeToggle() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -81,12 +82,20 @@ function UserMenu({ user, logout, t }: { user: any; logout: () => void; t: any }
             {t('navigation.yourProfile')}
           </Link>
           {user?.is_admin && (
-            <Link
-              to="/admin"
-              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              {t('navigation.adminDashboard')}
-            </Link>
+            <>
+              <Link
+                to="/admin"
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {t('navigation.adminDashboard')}
+              </Link>
+              <Link
+                to="/admin/winners"
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {t('navigation.manageWinners')}
+              </Link>
+            </>
           )}
           <button
             onClick={() => {
@@ -239,6 +248,14 @@ function AppContent() {
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/winners"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <WinnersAdmin />
                 </ProtectedRoute>
               }
             />

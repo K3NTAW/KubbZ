@@ -85,6 +85,11 @@ export const authService = {
         localStorage.removeItem('token');
     },
 
+    async getUsers(): Promise<User[]> {
+        const response = await api.get('/auth/users');
+        return response.data;
+    },
+
     logout(): void {
         localStorage.removeItem('token');
     },

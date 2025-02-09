@@ -34,7 +34,7 @@ export function WinnersAdmin() {
             const [winnersData, usersData, tournamentsData] = await Promise.all([
                 winnersService.getWinners(),
                 authService.getUsers(),
-                tournamentService.getTournaments()
+                tournamentService.getAllTournaments()
             ]);
             setWinners(winnersData);
             setUsers(usersData);

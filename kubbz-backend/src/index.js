@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const tournamentRoutes = require('./routes/tournaments');
 const rankingRoutes = require('./routes/rankings');
+const winnersRoutes = require('./routes/winners');
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,9 @@ app.use('/api/tournaments', tournamentRoutes);
 
 // Rankings routes
 app.use('/api/rankings', rankingRoutes);
+
+// Winners routes
+app.use('/api/winners', winnersRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

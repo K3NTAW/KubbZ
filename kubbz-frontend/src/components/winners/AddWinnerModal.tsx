@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { User } from '../../types/user';
 import { Tournament } from '../../types/tournament';
 import { toast } from 'react-hot-toast';
@@ -19,6 +19,8 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
     const [winDate, setWinDate] = useState('');
     const [pictureUrl, setPictureUrl] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const selectedUser = useMemo(() => users.find(u => u.id === userId), [users, userId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,107 +49,164 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setUserId('');
+            setTournamentId('');
+            setSeasonNumber(undefined);
+            setWinDate('');
+            setPictureUrl('');
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Add Winner</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                User *
-                            </label>
-                            <select
-                                value={userId}
-                                onChange={(e) => setUserId(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                required
-                            >
-                                <option value="">Select a user</option>
-                                {users.map((user) => (
-                                    <option key={user.id} value={user.id}>
-                                        {user.username}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Tournament
-                            </label>
-                            <select
-                                value={tournamentId}
-                                onChange={(e) => setTournamentId(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            >
-                                <option value="">Select a tournament</option>
-                                {tournaments.map((tournament) => (
-                                    <option key={tournament.id} value={tournament.id}>
-                                        {tournament.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Season Number
-                            </label>
-                            <input
-                                type="number"
-                                value={seasonNumber || ''}
-                                onChange={(e) => setSeasonNumber(e.target.value ? parseInt(e.target.value) : undefined)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Win Date *
-                            </label>
-                            <input
-                                type="date"
-                                value={winDate}
-                                onChange={(e) => setWinDate(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Picture URL
-                            </label>
-                            <input
-                                type="url"
-                                value={pictureUrl}
-                                onChange={(e) => setPictureUrl(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                placeholder="https://example.com/image.jpg"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-end space-x-3">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
+                <div className="p-6 space-y-6">
+                    <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add Winner</h2>
                         <button
-                            type="button"
                             onClick={onClose}
-                            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        >
-                            {isSubmitting ? 'Adding...' : 'Add Winner'}
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
-                </form>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Select User *
+                                </label>
+                                <select
+                                    value={userId}
+                                    onChange={(e) => setUserId(e.target.value)}
+                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                    required
+                                >
+                                    <option value="">Select a user</option>
+                                    {users.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.username}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {selectedUser && (
+                                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <div className="flex items-center">
+                                        <img
+                                            src={selectedUser.avatar || '/default-avatar.png'}
+                                            alt={selectedUser.username}
+                                            className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-gray-800"
+                                        />
+                                        <div className="ml-4">
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {selectedUser.username}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                Selected Winner
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Tournament
+                                </label>
+                                <select
+                                    value={tournamentId}
+                                    onChange={(e) => setTournamentId(e.target.value)}
+                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                >
+                                    <option value="">Select a tournament</option>
+                                    {tournaments.map((tournament) => (
+                                        <option key={tournament.id} value={tournament.id}>
+                                            {tournament.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Season Number
+                                </label>
+                                <input
+                                    type="number"
+                                    value={seasonNumber || ''}
+                                    onChange={(e) => setSeasonNumber(e.target.value ? parseInt(e.target.value) : undefined)}
+                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                    placeholder="Enter season number"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Win Date *
+                                </label>
+                                <input
+                                    type="date"
+                                    value={winDate}
+                                    onChange={(e) => setWinDate(e.target.value)}
+                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Picture URL
+                                </label>
+                                <input
+                                    type="url"
+                                    value={pictureUrl}
+                                    onChange={(e) => setPictureUrl(e.target.value)}
+                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                                    placeholder="https://example.com/image.jpg"
+                                />
+                                {pictureUrl && (
+                                    <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
+                                        <img
+                                            src={pictureUrl}
+                                            alt="Winner"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const img = e.target as HTMLImageElement;
+                                                img.src = '/default-avatar.png';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                            >
+                                {isSubmitting ? 'Adding...' : 'Add Winner'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
