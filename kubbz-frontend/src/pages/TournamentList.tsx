@@ -1,20 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTournamentStore } from '../store/tournamentStore';
+import { useAuthStore } from '../store/authStore';
 import { Calendar } from '../components/Calendar';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
-import { useAuthStore } from '../store/authStore';
 
-export function TournamentList() {
+interface TournamentListProps {
+  tournaments: any[];
+  onRegister?: (tournamentId: number) => void;
+}
+
+export function TournamentList({ tournaments, onRegister }: TournamentListProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { tournaments, loading, error, fetchTournaments, updateTournamentStatuses, handleRegister: handleRegisterStore } = useTournamentStore();
+  const { updateTournamentStatuses, handleRegister: handleRegisterStore } = useTournamentStore();
+  const [expandedTournamentId, setExpandedTournamentId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
 
   React.useEffect(() => {
     console.log('TournamentList mounted, fetching tournaments...');
-    fetchTournaments();
+    updateTournamentStatuses();
 
     // Update tournament statuses every minute
     const intervalId = setInterval(() => {
@@ -22,7 +30,7 @@ export function TournamentList() {
     }, 60000); // 60000ms = 1 minute
 
     return () => clearInterval(intervalId);
-  }, [fetchTournaments, updateTournamentStatuses]);
+  }, [updateTournamentStatuses]);
 
   // Group tournaments by status
   const groupedTournaments = React.useMemo(() => {
@@ -32,16 +40,8 @@ export function TournamentList() {
       }
       acc[tournament.status].push(tournament);
       return acc;
-    }, {} as Record<Tournament['status'], Tournament[]>);
+    }, {} as Record<any, any[]>);
   }, [tournaments]);
-
-  if (error) {
-    return (
-      <div className="p-4 text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 rounded-md">
-        <p>{error}</p>
-      </div>
-    );
-  }
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
@@ -54,29 +54,29 @@ export function TournamentList() {
     }
   };
 
-  const handleRegister = (tournamentId: string) => {
+  const handleRegisterClick = (tournamentId: number) => {
     if (!user) {
       toast.error('Please log in to register for tournaments');
       navigate('/login');
       return;
     }
-    navigate(`/tournaments/${tournamentId}/register`);
+    if (onRegister) {
+      onRegister(tournamentId);
+    } else {
+      navigate(`/tournaments/${tournamentId}/register`);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
-      </div>
-    );
-  }
-
-  const statusOrder: Tournament['status'][] = ['ongoing', 'upcoming', 'completed'];
+  const isRegistrationOpen = (tournament: any) => {
+    const now = new Date();
+    const deadline = new Date(tournament.registration_deadline);
+    return deadline > now && (!tournament.max_participants || tournament.current_participants < tournament.max_participants);
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-2 space-y-8">
-        {statusOrder.map(status => {
+        {Object.keys(groupedTournaments).map(status => {
           const statusTournaments = groupedTournaments[status] || [];
           if (statusTournaments.length === 0) return null;
 
@@ -84,7 +84,7 @@ export function TournamentList() {
             <div key={status} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">
               <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">
-                  {status === 'ongoing' ? 'Happening Today' : `${status} Tournaments`}
+                  {status === 'ongoing' ? t('tournament.happeningToday') : `${t('tournament.upcoming')} ${t('tournament.tournaments')}`}
                 </h1>
               </div>
               <div className="p-6 space-y-6">
@@ -102,29 +102,29 @@ export function TournamentList() {
                           ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
                       }`}>
-                        {tournament.status === 'ongoing' ? 'Today' : tournament.status}
+                        {tournament.status === 'ongoing' ? t('tournament.today') : tournament.status}
                       </span>
                     </div>
                     <p className="mt-2 text-gray-600 dark:text-gray-300">{tournament.description}</p>
                     <div className="mt-4 grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-medium">Date:</span>{' '}
+                          <span className="font-medium">{t('tournament.date')}:</span>{' '}
                           {format(new Date(tournament.date), 'MMMM d, yyyy')}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          <span className="font-medium">Location:</span> {tournament.location}
+                          <span className="font-medium">{t('tournament.location')}:</span> {tournament.location}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          <span className="font-medium">Entry Fee:</span> ${tournament.entry_fee}
+                          <span className="font-medium">{t('tournament.entryFee')}:</span> ${tournament.entry_fee}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-medium">Prize Pool:</span> ${tournament.prize_pool}
+                          <span className="font-medium">{t('tournament.prizePool')}:</span> ${tournament.prize_pool}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          <span className="font-medium">Participants:</span>{' '}
+                          <span className="font-medium">{t('tournament.participants')}:</span>{' '}
                           {tournament.current_participants} / {tournament.max_participants}
                         </p>
                       </div>
@@ -133,9 +133,9 @@ export function TournamentList() {
                       <div className="mt-6 flex justify-end">
                         <button 
                           className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                          onClick={() => handleRegister(tournament.id.toString())}
+                          onClick={() => handleRegisterClick(tournament.id)}
                         >
-                          Register Now
+                          {t('tournament.registerNow')}
                         </button>
                       </div>
                     )}
@@ -147,7 +147,7 @@ export function TournamentList() {
         })}
         {tournaments.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No tournaments available at this time.</p>
+            <p className="text-gray-500 dark:text-gray-400">{t('tournament.noTournaments')}</p>
           </div>
         )}
       </div>

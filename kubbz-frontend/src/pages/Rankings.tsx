@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RankingsTable } from '../components/rankings/RankingsTable';
 import { useRankingStore } from '../store/rankingStore';
 
 const ITEMS_PER_PAGE = 10;
 
 export function Rankings() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const { rankings, loading, error, fetchRankings } = useRankingStore();
   
@@ -42,9 +44,9 @@ export function Rankings() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="sm:flex sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Season Rankings</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('rankings.title')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            View the current standings and points for all players this season.
+            {t('rankings.description')}
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate, Navigate, useLocation, NavLink } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Tournaments } from './pages/Tournaments';
 import { LoginForm } from './components/auth/LoginForm';
@@ -13,6 +13,10 @@ import { TournamentRegistration } from './pages/TournamentRegistration';
 import { Profile } from './pages/Profile';
 import { Home } from './pages/Home';
 import { Avatar } from './components/common/Avatar';
+import './i18n/i18n';
+import LanguageToggle from './components/LanguageToggle';
+import { useTranslation } from 'react-i18next';
+import kubbLogo from './assets/images/logos/kubblogo.png';
 
 function ThemeToggle() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -45,7 +49,7 @@ function ThemeToggle() {
   );
 }
 
-function UserMenu({ user, logout }: { user: any; logout: () => void }) {
+function UserMenu({ user, logout, t }: { user: any; logout: () => void; t: any }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,14 +78,14 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
             to="/profile"
             className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Your Profile
+            {t('navigation.yourProfile')}
           </Link>
           {user?.is_admin && (
             <Link
               to="/admin"
               className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Admin Dashboard
+              {t('navigation.adminDashboard')}
             </Link>
           )}
           <button
@@ -91,7 +95,7 @@ function UserMenu({ user, logout }: { user: any; logout: () => void }) {
             }}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Sign out
+            {t('navigation.signOut')}
           </button>
         </div>
       )}
@@ -123,9 +127,11 @@ function ProtectedRoute({ children, requireAdmin }: { children: React.ReactNode;
 
 function AppContent() {
   const { isAuthenticated, user, logout } = useAuthStore();
+  const { t } = useTranslation();
+  const location = useLocation();
 
   return (
-    <BrowserRouter>
+    <>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -137,14 +143,18 @@ function AppContent() {
           className: '!bg-white dark:!bg-gray-800 !text-gray-900 dark:!text-white',
         }}
       />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <nav className="bg-white dark:bg-gray-800 shadow-sm">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <nav className="bg-white/80 dark:bg-gray-800/80 shadow-sm relative z-50">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex justify-between h-16">
+            <div className="flex justify-between h-20">
               <div className="flex">
                 <div className="flex-shrink-0 flex items-center">
-                  <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    KUBBZuerich
+                  <Link to="/" className="flex items-center">
+                    <img
+                      className="h-12 w-auto"
+                      src={kubbLogo}
+                      alt="KUBBZuerich"
+                    />
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -156,7 +166,7 @@ function AppContent() {
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                   >
-                    Home
+                    {t('navigation.home')}
                   </Link>
                   <Link
                     to="/tournaments"
@@ -166,7 +176,7 @@ function AppContent() {
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                   >
-                    Tournaments
+                    {t('navigation.tournaments')}
                   </Link>
                   <Link
                     to="/rankings"
@@ -176,28 +186,33 @@ function AppContent() {
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                   >
-                    Rankings
+                    {t('navigation.rankings')}
                   </Link>
                 </div>
               </div>
 
               <div className="flex items-center">
-                <ThemeToggle />
                 {isAuthenticated ? (
-                  <UserMenu user={user} logout={logout} />
+                  <div className="flex items-center space-x-4">
+                    <ThemeToggle />
+                    <LanguageToggle />
+                    <UserMenu user={user} logout={logout} t={t} />
+                  </div>
                 ) : (
-                  <div className="flex items-center space-x-4 ml-4">
+                  <div className="flex items-center space-x-4">
+                    <ThemeToggle />
+                    <LanguageToggle />
                     <Link
                       to="/login"
-                      className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                      className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
-                      Sign In
+                      {t('navigation.login')}
                     </Link>
                     <Link
                       to="/register"
-                      className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium"
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600"
                     >
-                      Sign Up
+                      {t('navigation.register')}
                     </Link>
                   </div>
                 )}
@@ -239,14 +254,16 @@ function AppContent() {
           </Routes>
         </main>
       </div>
-    </BrowserRouter>
+    </>
   );
 }
 
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

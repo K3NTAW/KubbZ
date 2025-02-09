@@ -7,6 +7,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  assetsInclude: ['**/*.JPG'],
   server: {
     port: 8080,
   },

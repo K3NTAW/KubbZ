@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { RankingEntry } from '../../types/user';
 import { Avatar } from '../common/Avatar';
 
@@ -10,14 +11,16 @@ interface RankingsTableProps {
 }
 
 export function RankingsTable({ rankings, currentPage, totalPages, onPageChange }: RankingsTableProps) {
+  const { t } = useTranslation();
+
   const getRankDisplay = (rank: number) => {
     switch (rank) {
       case 1:
-        return <span className="text-yellow-400 font-bold">1st</span>;
+        return <span className="text-yellow-400 font-bold">{t('rankings.rank1')}</span>;
       case 2:
-        return <span className="text-gray-400 font-bold">2nd</span>;
+        return <span className="text-gray-400 font-bold">{t('rankings.rank2')}</span>;
       case 3:
-        return <span className="text-amber-600 font-bold">3rd</span>;
+        return <span className="text-amber-600 font-bold">{t('rankings.rank3')}</span>;
       default:
         return <span className="text-gray-500 dark:text-gray-400">{rank}th</span>;
     }
@@ -48,13 +51,13 @@ export function RankingsTable({ rankings, currentPage, totalPages, onPageChange 
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
               <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Rank
+                {t('rankings.rank')}
               </th>
               <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Player
+                {t('rankings.player')}
               </th>
               <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Points
+                {t('rankings.points')}
               </th>
             </tr>
           </thead>
@@ -100,24 +103,24 @@ export function RankingsTable({ rankings, currentPage, totalPages, onPageChange 
             disabled={currentPage === 1}
             className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Previous
+            {t('rankings.previous')}
           </button>
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Next
+            {t('rankings.next')}
           </button>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Showing <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> to{' '}
+              {t('rankings.showing')} <span className="font-medium">{(currentPage - 1) * 10 + 1}</span> {t('rankings.to')}{' '}
               <span className="font-medium">
                 {Math.min(currentPage * 10, rankings.length)}
               </span>{' '}
-              of <span className="font-medium">{rankings.length}</span> results
+              {t('rankings.of')} <span className="font-medium">{rankings.length}</span> {t('rankings.results')}
             </p>
           </div>
           <div>
@@ -127,7 +130,7 @@ export function RankingsTable({ rankings, currentPage, totalPages, onPageChange 
                 disabled={currentPage === 1}
                 className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Previous
+                {t('rankings.previous')}
               </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
@@ -147,7 +150,7 @@ export function RankingsTable({ rankings, currentPage, totalPages, onPageChange 
                 disabled={currentPage === totalPages}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Next
+                {t('rankings.next')}
               </button>
             </nav>
           </div>
