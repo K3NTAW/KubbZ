@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS winners (
+    id BINARY(16) NOT NULL DEFAULT (UUID_TO_BIN(UUID())),
+    user_id BINARY(16),
+    tournament_id INT,
+    season_number INT,
+    win_date DATE NOT NULL,
+    picture_url TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (tournament_id) REFERENCES tournaments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
