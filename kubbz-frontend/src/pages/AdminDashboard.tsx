@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import { CreateTournamentModal } from '../components/CreateTournamentModal';
 import { EditTournamentModal } from '../components/EditTournamentModal';
 import { Link } from 'react-router-dom';
-import { AdminNav } from '../components/AdminNav';
 
 export function AdminDashboard() {
   const [expandedTournamentId, setExpandedTournamentId] = useState<string | null>(null);
@@ -94,7 +93,6 @@ export function AdminDashboard() {
 
   return (
     <div>
-      <AdminNav />
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -197,7 +195,7 @@ export function AdminDashboard() {
                                   >
                                     View on Google Maps
                                     <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
                                   </a>
                                 </p>

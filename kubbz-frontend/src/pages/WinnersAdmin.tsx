@@ -7,7 +7,6 @@ import { authService } from '../services/authService';
 import { tournamentService } from '../services/tournamentService';
 import { WinnersList } from '../components/winners/WinnersList';
 import { AddWinnerModal } from '../components/winners/AddWinnerModal';
-import { AdminNav } from '../components/AdminNav';
 import { Winner } from '../types/winner';
 import { User } from '../types/user';
 import { Tournament } from '../types/tournament';
@@ -71,34 +70,35 @@ export function WinnersAdmin() {
     }
 
     return (
-        <>
-            <AdminNav />
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Manage Winners
-                    </h1>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        Add Winner
-                    </button>
-                </div>
-
-                <WinnersList winners={winners} onDelete={handleDelete} />
-
-                <AddWinnerModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSuccess={() => {
-                        loadData();
-                        setIsModalOpen(false);
-                    }}
-                    users={users}
-                    tournaments={tournaments}
-                />
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Manage Winners
+                </h1>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                    Add Winner
+                </button>
             </div>
-        </>
+
+            <WinnersList
+                winners={winners}
+                onDelete={handleDelete}
+                isAdmin={true}
+            />
+
+            <AddWinnerModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={() => {
+                    loadData();
+                    setIsModalOpen(false);
+                }}
+                users={users}
+                tournaments={tournaments}
+            />
+        </div>
     );
 }

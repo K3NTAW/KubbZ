@@ -3,6 +3,7 @@ import { User } from '../../types/user';
 import { Tournament } from '../../types/tournament';
 import { toast } from 'react-hot-toast';
 import { winnersService } from '../../services/winnersService';
+import { uploadService } from '../../services/uploadService';
 
 interface AddWinnerModalProps {
     isOpen: boolean;
@@ -19,8 +20,23 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
     const [winDate, setWinDate] = useState('');
     const [pictureUrl, setPictureUrl] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const selectedUser = useMemo(() => users.find(u => u.id === userId), [users, userId]);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Preview the selected image
+        setSelectedFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPictureUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,12 +47,28 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
 
         setIsSubmitting(true);
         try {
+            let finalPictureUrl = pictureUrl;
+            
+            // Upload the image if a file is selected
+            if (selectedFile) {
+                setIsUploading(true);
+                try {
+                    finalPictureUrl = await uploadService.uploadImage(selectedFile);
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    toast.error('Failed to upload image');
+                    return;
+                } finally {
+                    setIsUploading(false);
+                }
+            }
+
             await winnersService.addWinner({
                 user_id: userId,
                 tournament_id: tournamentId || undefined,
                 season_number: seasonNumber,
                 win_date: winDate,
-                picture_url: pictureUrl || undefined,
+                picture_url: finalPictureUrl || undefined,
             });
             toast.success('Winner added successfully');
             onSuccess();
@@ -56,6 +88,7 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
             setSeasonNumber(undefined);
             setWinDate('');
             setPictureUrl('');
+            setSelectedFile(null);
         }
     }, [isOpen]);
 
@@ -164,25 +197,32 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Picture URL
+                                    Picture
                                 </label>
-                                <input
-                                    type="url"
-                                    value={pictureUrl}
-                                    onChange={(e) => setPictureUrl(e.target.value)}
-                                    className="block w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                                <div className="mt-1 flex items-center space-x-4">
+                                    <label className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {selectedFile ? 'Change Image' : 'Upload Image'}
+                                        </span>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                        />
+                                    </label>
+                                    {selectedFile && (
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            {selectedFile.name}
+                                        </span>
+                                    )}
+                                </div>
                                 {pictureUrl && (
                                     <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                                         <img
                                             src={pictureUrl}
                                             alt="Winner"
                                             className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                const img = e.target as HTMLImageElement;
-                                                img.src = '/default-avatar.png';
-                                            }}
                                         />
                                     </div>
                                 )}
@@ -199,10 +239,10 @@ export function AddWinnerModal({ isOpen, onClose, onSuccess, users, tournaments 
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isUploading}
                                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                             >
-                                {isSubmitting ? 'Adding...' : 'Add Winner'}
+                                {isUploading ? 'Uploading...' : isSubmitting ? 'Adding...' : 'Add Winner'}
                             </button>
                         </div>
                     </form>
