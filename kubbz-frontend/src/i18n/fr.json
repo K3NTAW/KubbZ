@@ -46,7 +46,16 @@
     "accountActions": "Actions du compte",
     "adminPanel": "Panneau d'administration",
     "deleteAccount": "Supprimer le compte",
-    "editProfileInformation": "Modifier les informations du profil"
+    "editProfileInformation": "Modifier les informations du profil",
+    "confirmDelete": "Oui, supprimer mon compte",
+    "confirmDeletion": "Confirmer la suppression du compte",
+    "deletionWarning": "Cette action ne peut pas être annulée. Toutes vos données seront définitivement supprimées.",
+    "enterPassword": "Entrez votre mot de passe",
+    "enterYourPassword": "Entrez votre mot de passe actuel",
+    "passwordRequired": "Le mot de passe est requis pour supprimer votre compte",
+    "incorrectPassword": "Mot de passe incorrect",
+    "accountDeletedSuccessfully": "Votre compte a été supprimé avec succès",
+    "failedToDeleteAccount": "Échec de la suppression du compte. Veuillez réessayer"
   },
   "tournament": {
     "register": "S'inscrire au tournoi",

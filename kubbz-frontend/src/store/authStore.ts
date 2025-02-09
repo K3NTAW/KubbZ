@@ -10,7 +10,7 @@ interface AuthState {
   logout: () => void;
   register: (email: string, password: string, name: string) => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -40,8 +40,8 @@ export const useAuthStore = create<AuthState>()(
           }
         }));
       },
-      deleteAccount: async () => {
-        await authService.deleteAccount();
+      deleteAccount: async (password: string) => {
+        await authService.deleteAccount(password);
         set({ user: null, isAuthenticated: false });
       }
     }),

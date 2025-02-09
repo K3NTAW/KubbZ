@@ -80,8 +80,8 @@ export const authService = {
         return mappedUser;
     },
 
-    async deleteAccount(): Promise<void> {
-        await api.delete('/auth/profile');
+    async deleteAccount(password: string): Promise<void> {
+        await api.delete('/auth/profile', { data: { password } });
         localStorage.removeItem('token');
     },
 

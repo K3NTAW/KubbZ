@@ -23,6 +23,9 @@ export function Profile() {
     avatar: user?.avatar || ''
   });
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
@@ -89,16 +92,33 @@ export function Profile() {
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm(t('profile.areYouSureYouWantToDeleteYourAccount'))) {
-      try {
-        await deleteAccount();
-        navigate('/');
-        toast.success(t('profile.accountDeletedSuccessfully'));
-      } catch (error) {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    if (!deletePassword) {
+      toast.error(t('profile.passwordRequired'));
+      return;
+    }
+
+    try {
+      await deleteAccount(deletePassword);
+      toast.success(t('profile.accountDeletedSuccessfully'));
+      navigate('/');
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        toast.error(t('profile.incorrectPassword'));
+      } else {
         toast.error(t('profile.failedToDeleteAccount'));
         console.error('Failed to delete account:', error);
       }
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeletePassword('');
   };
 
   const handleDropOut = async (tournamentId: string) => {
@@ -452,7 +472,7 @@ export function Profile() {
                         <div className="relative rounded-md shadow-sm">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg className="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v-2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                             </svg>
                           </div>
                           <input
@@ -530,15 +550,53 @@ export function Profile() {
                     <span>{t('profile.adminPanel')}</span>
                   </Link>
                 )}
-                <button
-                  onClick={handleDeleteAccount}
-                  className="flex items-center space-x-2 text-sm text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span>{t('profile.deleteAccount')}</span>
-                </button>
+                {showDeleteConfirm ? (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
+                      {t('profile.confirmDeletion')}
+                    </h3>
+                    <p className="text-sm text-red-600 dark:text-red-300 mb-4">
+                      {t('profile.deletionWarning')}
+                    </p>
+                    <div className="mb-4">
+                      <label htmlFor="deletePassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {t('profile.enterPassword')}
+                      </label>
+                      <input
+                        type="password"
+                        id="deletePassword"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        className="mt-1 block w-full px-3 py-2 rounded-md border border-red-300 dark:border-red-700 shadow-sm focus:border-red-500 focus:ring-red-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        placeholder={t('profile.enterYourPassword')}
+                      />
+                    </div>
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={handleDeleteAccount}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        {t('profile.confirmDelete')}
+                      </button>
+                      <button
+                        onClick={cancelDelete}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                      >
+                        {t('profile.cancel')}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleDeleteAccount}
+                    className="flex items-center space-x-2 text-sm text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>{t('profile.deleteAccount')}</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

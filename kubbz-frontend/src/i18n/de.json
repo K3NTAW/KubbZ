@@ -46,7 +46,16 @@
     "accountActions": "Kontoaktionen",
     "adminPanel": "Admin-Panel",
     "deleteAccount": "Konto löschen",
-    "editProfileInformation": "Profilinformationen bearbeiten"
+    "editProfileInformation": "Profilinformationen bearbeiten",
+    "confirmDelete": "Ja, mein Konto löschen",
+    "confirmDeletion": "Kontolöschung bestätigen",
+    "deletionWarning": "Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht.",
+    "enterPassword": "Geben Sie Ihr Passwort ein",
+    "enterYourPassword": "Geben Sie Ihr aktuelles Passwort ein",
+    "passwordRequired": "Passwort ist erforderlich, um Ihr Konto zu löschen",
+    "incorrectPassword": "Falsches Passwort",
+    "accountDeletedSuccessfully": "Ihr Konto wurde erfolgreich gelöscht",
+    "failedToDeleteAccount": "Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut"
   },
   "tournament": {
     "register": "Für Turnier anmelden",

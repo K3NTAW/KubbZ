@@ -46,6 +46,16 @@
     "accountActions": "Azioni account",
     "adminPanel": "Pannello admin",
     "deleteAccount": "Elimina account",
+    "editProfile": "Modifica profilo",
+    "confirmDelete": "Sì, elimina il mio account",
+    "confirmDeletion": "Conferma eliminazione account",
+    "deletionWarning": "Questa azione non può essere annullata. Tutti i tuoi dati verranno eliminati definitivamente.",
+    "enterPassword": "Inserisci la tua password",
+    "enterYourPassword": "Inserisci la tua password attuale",
+    "passwordRequired": "La password è necessaria per eliminare il tuo account",
+    "incorrectPassword": "Password errata",
+    "accountDeletedSuccessfully": "Il tuo account è stato eliminato con successo",
+    "failedToDeleteAccount": "Impossibile eliminare l'account. Per favore riprova",
     "editProfileInformation": "Modifica informazioni profilo"
   },
   "tournament": {

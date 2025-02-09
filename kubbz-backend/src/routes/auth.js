@@ -217,4 +217,47 @@ router.patch('/profile', auth, async (req, res) => {
     }
 });
 
+// Delete account
+router.delete('/profile', auth, async (req, res) => {
+    try {
+        const { password } = req.body;
+        const userId = req.user.id;
+
+        // Get user from database
+        const [users] = await pool.execute(
+            'SELECT BIN_TO_UUID(id) as id, password_hash FROM users WHERE id = UUID_TO_BIN(?)',
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = users[0];
+
+        // Verify password
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+        if (!validPassword) {
+            return res.status(401).json({ message: 'Invalid password' });
+        }
+
+        // Delete user's tournament registrations
+        await pool.execute(
+            'DELETE FROM tournament_registrations WHERE user_id = UUID_TO_BIN(?)',
+            [userId]
+        );
+
+        // Delete the user
+        await pool.execute(
+            'DELETE FROM users WHERE id = UUID_TO_BIN(?)',
+            [userId]
+        );
+
+        res.status(200).json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        res.status(500).json({ message: 'Error deleting account' });
+    }
+});
+
 module.exports = router;
