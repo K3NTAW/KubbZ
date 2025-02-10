@@ -6,7 +6,7 @@ import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { ProfileManager } from './components/auth/ProfileManager';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { Rankings } from './pages/Rankings';
+import { WinnersGallery } from './pages/WinnersGallery';
 import { useAuthStore } from './store/authStore';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { TournamentRegistration } from './pages/TournamentRegistration';
@@ -259,7 +259,10 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/rankings" element={<Rankings />} />
+            <Route
+              path="/rankings"
+              element={<WinnersGallery />}
+            />
             <Route
               path="/tournaments/:id/register"
               element={

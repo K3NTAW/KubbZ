@@ -2,7 +2,7 @@
   "navigation": {
     "home": "Home",
     "tournaments": "Tournaments",
-    "rankings": "Rankings",
+    "rankings": "Winners Gallery",
     "profile": "Profile",
     "logout": "Logout",
     "login": "Login",
@@ -191,57 +191,8 @@
     }
   },
   "rankings": {
-    "title": "Rankings",
-    "description": "View the current standings and points for all players this season.",
-    "seasonDescription": "Track player performance and rankings throughout the season. Points are awarded based on tournament participation and performance.",
-    "rank": "Rank",
-    "player": "Player",
-    "points": "Points",
-    "gamesPlayed": "Games Played",
-    "wins": "Wins",
-    "losses": "Losses",
-    "winRate": "Win Rate",
-    "lastPlayed": "Last Played",
-    "noGames": "No games played yet",
-    "noRankings": "No rankings available",
-    "filterByDate": "Filter by Date",
-    "filterByTournament": "Filter by Tournament",
-    "resetFilters": "Reset Filters",
-    "loading": "Loading rankings...",
-    "lastMonth": "Last Month",
-    "lastYear": "Last Year",
-    "allTime": "All Time",
-    "rank1": "1st",
-    "rank2": "2nd",
-    "rank3": "3rd",
-    "previous": "Previous",
-    "next": "Next",
-    "showing": "Showing",
-    "to": "to",
-    "of": "of",
-    "results": "results",
-    "pointsSystem": {
-      "title": "Points System",
-      "tournamentWin": "Tournament Win",
-      "tournamentSecond": "Tournament Second Place",
-      "tournamentThird": "Tournament Third Place",
-      "matchWin": "Match Win",
-      "participation": "Tournament Participation"
-    },
-    "filters": {
-      "all": "All Time",
-      "season": "Current Season",
-      "month": "This Month",
-      "tournament": "By Tournament"
-    },
-    "stats": {
-      "title": "Player Statistics",
-      "totalGames": "Total Games",
-      "averagePoints": "Average Points per Game",
-      "bestResult": "Best Tournament Result",
-      "currentStreak": "Current Streak",
-      "bestStreak": "Best Streak"
-    }
+    "title": "Winners Gallery",
+    "description": "Check out our tournament champions and their victories!"
   },
   "common": {
     "loading": "Loading...",
