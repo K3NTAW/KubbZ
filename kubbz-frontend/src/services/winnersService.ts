@@ -1,5 +1,5 @@
 import api from './api';
-import { Winner } from '../types/winner';
+import { Winner, WinnerFormData } from '../types/winner';
 
 export const winnersService = {
     async getWinners(): Promise<Winner[]> {
@@ -7,13 +7,7 @@ export const winnersService = {
         return response.data;
     },
 
-    async addWinner(winnerData: {
-        user_id: string;
-        tournament_id?: string;
-        season_number?: number;
-        win_date: string;
-        picture_url?: string;
-    }): Promise<Winner> {
+    async addWinners(winnerData: WinnerFormData): Promise<Winner[]> {
         const response = await api.post('/winners', winnerData);
         return response.data;
     },

@@ -9,3 +9,11 @@ export interface Winner {
     username: string;
     avatar?: string;
 }
+
+export interface WinnerFormData {
+    user_ids: string[];
+    tournament_id?: string;
+    season_number?: number;
+    win_date: string;
+    picture_url?: string;
+}

@@ -28,6 +28,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
         console.error('API Error:', error.response?.data || error.message);
         return Promise.reject(error);
     }
